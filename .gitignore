@@ -1,3 +1,15 @@
 resources/references.json.gz
 *.bin
-/tmp/
+
+comp_fks/
+
+/api
+/lb
+/preprocess
+/validate
+/validatepart
+/validatekd
+
+.DS_Store
+*.swp
+*.out
