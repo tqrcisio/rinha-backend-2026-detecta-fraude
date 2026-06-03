@@ -1,13 +1,18 @@
 FROM golang:1.26-bookworm AS build
 WORKDIR /src
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o /preprocess ./cmd/preprocess && \
-    /preprocess -gz resources/references.json.gz -bin /tmp/refs.bin -out /index.bin
+ARG REFS_URL=https://github.com/zanfranceschi/rinha-de-backend-2026/raw/main/resources/references.json.gz
+ARG REFS_SHA256=43d10de80609e77ce25740f375607afce7561ec44da50c27c142493db8fcab67
+RUN curl -fsSL -o /tmp/refs.gz "$REFS_URL" && \
+    echo "$REFS_SHA256  /tmp/refs.gz" | sha256sum -c - && \
+    go build -o /preprocess ./cmd/preprocess && \
+    /preprocess -gz /tmp/refs.gz -bin /tmp/refs.bin -out /index.bin
 RUN CGO_ENABLED=0 GOAMD64=v3 go build -trimpath -ldflags="-s -w" -o /api ./cmd/api
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian12
 COPY --from=build /api /api
 COPY --from=build /index.bin /index.bin
 COPY --from=build /src/resources/normalization.json /resources/normalization.json
