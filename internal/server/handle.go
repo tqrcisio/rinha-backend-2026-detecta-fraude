@@ -2,9 +2,8 @@ package server
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"math"
+	"unsafe"
 
 	"github.com/tqrcisio/rinha-backend-2026-detecta-fraude/internal/index"
 	"github.com/tqrcisio/rinha-backend-2026-detecta-fraude/internal/vectorize"
@@ -77,14 +76,10 @@ func (h *Handler) handle(c *conn) bool {
 }
 
 func (h *Handler) score(body []byte) []byte {
-	var p vectorize.Payload
-	if err := json.Unmarshal(body, &p); err != nil {
-		return h.resp[0]
-	}
-	v := h.nrm.Vectorize(&p)
 	var q [index.Stride]int16
-	for d := 0; d < vectorize.Dims; d++ {
-		q[d] = int16(math.Round(v[d] * 10000))
+	qd := (*[vectorize.Dims]int16)(unsafe.Pointer(&q))
+	if !h.nrm.QueryFromBody(body, qd) {
+		return h.resp[0]
 	}
 	return h.resp[h.kd.FraudCount5(&q)]
 }
