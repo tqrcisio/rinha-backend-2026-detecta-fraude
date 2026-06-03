@@ -9,7 +9,6 @@ services:
       SOCKET_PATH: /sockets/api1.sock
     volumes:
       - sockets:/sockets
-    cpuset: "0"
     ulimits:
       memlock: -1
     deploy:
@@ -25,7 +24,6 @@ services:
       SOCKET_PATH: /sockets/api2.sock
     volumes:
       - sockets:/sockets
-    cpuset: "1"
     ulimits:
       memlock: -1
     depends_on:
@@ -44,7 +42,6 @@ services:
       - "9999:9999"
     volumes:
       - sockets:/sockets
-    cpuset: "2,3"
     depends_on:
       - api1
       - api2
