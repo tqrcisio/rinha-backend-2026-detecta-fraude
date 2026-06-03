@@ -46,15 +46,6 @@ func New(h *Handler) (*Server, error) {
 }
 
 func (s *Server) add(fd int) {
-	if err := unix.SetNonblock(fd, true); err != nil {
-		unix.Close(fd)
-		return
-	}
-	unix.SetsockoptInt(fd, unix.SOL_TCP, unix.TCP_NODELAY, 1)
-	unix.SetsockoptInt(fd, unix.SOL_TCP, unix.TCP_QUICKACK, 1)
-	unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_BUSY_POLL, 50)
-	unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_PREFER_BUSY_POLL, 1)
-	unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_BUSY_POLL_BUDGET, 8)
 	ev := unix.EpollEvent{Events: unix.EPOLLIN | unix.EPOLLRDHUP | unix.EPOLLET, Fd: int32(fd)}
 	if err := unix.EpollCtl(s.epfd, unix.EPOLL_CTL_ADD, fd, &ev); err != nil {
 		unix.Close(fd)
@@ -118,7 +109,7 @@ func (s *Server) Run(specialFD int, listener bool) error {
 	}
 	events := make([]unix.EpollEvent, 256)
 	for {
-		n, err := unix.EpollWait(s.epfd, events, 1)
+		n, err := unix.EpollWait(s.epfd, events, -1)
 		if err == unix.EINTR {
 			continue
 		}
@@ -164,6 +155,7 @@ func (s *Server) acceptLoop(lfd int) {
 		if err != nil {
 			return
 		}
+		unix.SetsockoptInt(nfd, unix.SOL_TCP, unix.TCP_NODELAY, 1)
 		s.add(nfd)
 	}
 }
