@@ -1,7 +1,7 @@
 {
     "participants": ["Tarcisio Ferreira"],
-    "social": ["https://github.com/tqrcisio"],
+    "social": ["https://github.com/tqrcisio", "https://www.linkedin.com/in/tqrcisio/"],
     "source-code-repo": "https://github.com/tqrcisio/rinha-backend-2026-detecta-fraude",
     "stack": ["go", "c", "docker"],
-    "open_to_work": false
+    "open_to_work": true
 }
