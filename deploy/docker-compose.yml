@@ -1,7 +1,6 @@
 services:
   api1:
     image: ghcr.io/tqrcisio/rinha-fraud-api:1
-    cpuset: "0"
     environment:
       SOCKET_PATH: /sockets/api1.sock
     volumes:
@@ -16,7 +15,6 @@ services:
 
   api2:
     image: ghcr.io/tqrcisio/rinha-fraud-api:1
-    cpuset: "1"
     environment:
       SOCKET_PATH: /sockets/api2.sock
     volumes:
@@ -33,7 +31,6 @@ services:
 
   lb:
     image: ghcr.io/tqrcisio/rinha-fraud-lb:1
-    cpuset: "2,3"
     ports:
       - "9999:9999"
     volumes:
