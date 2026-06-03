@@ -118,7 +118,7 @@ func (s *Server) Run(specialFD int, listener bool) error {
 	}
 	events := make([]unix.EpollEvent, 256)
 	for {
-		n, err := unix.EpollWait(s.epfd, events, -1)
+		n, err := unix.EpollWait(s.epfd, events, 1)
 		if err == unix.EINTR {
 			continue
 		}
