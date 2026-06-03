@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 
 	"github.com/tqrcisio/rinha-backend-2026-detecta-fraude/internal/index"
@@ -35,6 +36,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	debug.SetGCPercent(-1)
+	debug.SetMemoryLimit(150 << 20)
+	kd.Warmup(20000)
 
 	srv, err := server.New(server.NewHandler(nrm, kd))
 	if err != nil {
