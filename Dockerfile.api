@@ -1,0 +1,21 @@
+FROM golang:1.26-bookworm AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o /preprocess ./cmd/preprocess && \
+    /preprocess -gz resources/references.json.gz -bin /tmp/refs.bin -out /index.bin
+RUN CGO_ENABLED=0 GOAMD64=v3 go build -trimpath -ldflags="-s -w" -o /api ./cmd/api
+
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=build /api /api
+COPY --from=build /index.bin /index.bin
+COPY --from=build /src/resources/normalization.json /resources/normalization.json
+COPY --from=build /src/resources/mcc_risk.json /resources/mcc_risk.json
+ENV INDEX_BIN=/index.bin \
+    NORM_JSON=/resources/normalization.json \
+    MCC_JSON=/resources/mcc_risk.json \
+    LISTEN_MODE=fd \
+    GOMAXPROCS=1 \
+    GOGC=200
+ENTRYPOINT ["/api"]
