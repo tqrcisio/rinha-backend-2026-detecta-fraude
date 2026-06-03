@@ -1,0 +1,48 @@
+services:
+  api1:
+    image: ghcr.io/tqrcisio/rinha-fraud-api:1
+    environment:
+      SOCKET_PATH: /sockets/api1.sock
+    volumes:
+      - sockets:/sockets
+    ulimits:
+      memlock: -1
+    deploy:
+      resources:
+        limits:
+          cpus: "0.45"
+          memory: "160MB"
+
+  api2:
+    image: ghcr.io/tqrcisio/rinha-fraud-api:1
+    environment:
+      SOCKET_PATH: /sockets/api2.sock
+    volumes:
+      - sockets:/sockets
+    ulimits:
+      memlock: -1
+    depends_on:
+      - api1
+    deploy:
+      resources:
+        limits:
+          cpus: "0.45"
+          memory: "160MB"
+
+  lb:
+    image: ghcr.io/tqrcisio/rinha-fraud-lb:1
+    ports:
+      - "9999:9999"
+    volumes:
+      - sockets:/sockets
+    depends_on:
+      - api1
+      - api2
+    deploy:
+      resources:
+        limits:
+          cpus: "0.10"
+          memory: "20MB"
+
+volumes:
+  sockets:
