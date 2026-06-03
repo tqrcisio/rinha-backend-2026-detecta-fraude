@@ -2,11 +2,25 @@ package server
 
 import (
 	"errors"
+	"unsafe"
 
 	"golang.org/x/sys/unix"
 )
 
 const maxFDsPerMsg = 64
+const epiocsParams = 0x40087001
+
+type epollParams struct {
+	busyPollUsecs  uint32
+	busyPollBudget uint16
+	preferBusyPoll uint8
+	_              uint8
+}
+
+func setEpollBusyPoll(epfd int) {
+	p := epollParams{busyPollUsecs: 50, busyPollBudget: 8, preferBusyPoll: 1}
+	unix.Syscall(unix.SYS_IOCTL, uintptr(epfd), uintptr(epiocsParams), uintptr(unsafe.Pointer(&p)))
+}
 
 type conn struct {
 	fd int
@@ -27,6 +41,7 @@ func New(h *Handler) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	setEpollBusyPoll(epfd)
 	return &Server{epfd: epfd, conns: make(map[int]*conn, 4096), h: h, buf: make([]byte, 64*1024)}, nil
 }
 
@@ -35,6 +50,11 @@ func (s *Server) add(fd int) {
 		unix.Close(fd)
 		return
 	}
+	unix.SetsockoptInt(fd, unix.SOL_TCP, unix.TCP_NODELAY, 1)
+	unix.SetsockoptInt(fd, unix.SOL_TCP, unix.TCP_QUICKACK, 1)
+	unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_BUSY_POLL, 50)
+	unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_PREFER_BUSY_POLL, 1)
+	unix.SetsockoptInt(fd, unix.SOL_SOCKET, unix.SO_BUSY_POLL_BUDGET, 8)
 	ev := unix.EpollEvent{Events: unix.EPOLLIN | unix.EPOLLRDHUP | unix.EPOLLET, Fd: int32(fd)}
 	if err := unix.EpollCtl(s.epfd, unix.EPOLL_CTL_ADD, fd, &ev); err != nil {
 		unix.Close(fd)
