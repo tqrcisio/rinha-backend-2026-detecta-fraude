@@ -226,15 +226,6 @@ func (b *best5) consider(d int64, g int32) {
 	}
 }
 
-func sqDist(q, r *[Stride]int16) int64 {
-	var s int64
-	for i := 0; i < Stride; i++ {
-		d := int64(q[i]) - int64(r[i])
-		s += d * d
-	}
-	return s
-}
-
 func aabbLowerBound(box *kdBox, q *[Stride]int16) int64 {
 	var s int64
 	for d := 0; d < Stride; d++ {
@@ -285,6 +276,19 @@ func (kd *KD) searchPart(key int, q *[Stride]int16, b *best5, stack []int32) []i
 		}
 	}
 	return stack
+}
+
+func (kd *KD) Warmup(n int) {
+	var q [Stride]int16
+	cnt := 0
+	for k := range kd.parts {
+		p := &kd.parts[k]
+		for i := 0; i < p.count && cnt < n; i++ {
+			copy(q[:], p.vec[i*Stride:i*Stride+Stride])
+			kd.FraudCount5(&q)
+			cnt++
+		}
+	}
 }
 
 func (kd *KD) FraudCount5(q *[Stride]int16) int {

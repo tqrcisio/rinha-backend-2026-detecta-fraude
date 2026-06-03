@@ -91,7 +91,7 @@ func Open(path string) (*KD, error) {
 		return nil, err
 	}
 	size := int(st.Size())
-	buf, err := unix.Mmap(int(f.Fd()), 0, size, unix.PROT_READ, unix.MAP_SHARED)
+	buf, err := unix.Mmap(int(f.Fd()), 0, size, unix.PROT_READ, unix.MAP_SHARED|unix.MAP_POPULATE)
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +99,8 @@ func Open(path string) (*KD, error) {
 		return nil, fmt.Errorf("bad magic in %s", path)
 	}
 	unix.Madvise(buf, unix.MADV_WILLNEED)
+	unix.Madvise(buf, unix.MADV_HUGEPAGE)
+	unix.Mlock(buf)
 
 	n := int(binary.LittleEndian.Uint64(buf[8:16]))
 	dir := (*[numBuckets]partDir)(unsafe.Pointer(&buf[16]))
