@@ -2,7 +2,8 @@ package index
 
 import "sort"
 
-const leafSize = 64
+var LeafSize = 256
+
 const leafMark = 0xFF
 
 type kdNode struct {
@@ -92,7 +93,7 @@ func buildPart(p *part) {
 		p.boxes = append(p.boxes, kdBox{})
 		p.boxes[idx] = computeBox(p.vec, perm, lo, hi)
 		dim, spread := widestDim(&p.boxes[idx])
-		if hi-lo <= leafSize || spread == 0 {
+		if hi-lo <= LeafSize || spread == 0 {
 			p.nodes[idx] = kdNode{splitDim: leafMark, left: int32(lo), right: int32(hi)}
 			return idx
 		}

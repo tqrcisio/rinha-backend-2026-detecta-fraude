@@ -13,7 +13,9 @@ func main() {
 	gz := flag.String("gz", "resources/references.json.gz", "")
 	bin := flag.String("bin", "/tmp/rinha-refs.bin", "")
 	out := flag.String("out", "index.bin", "")
+	leaf := flag.Int("leafsize", index.LeafSize, "KD-tree leaf size")
 	flag.Parse()
+	index.LeafSize = *leaf
 
 	t0 := time.Now()
 	refs, err := index.Load(*gz, *bin)
