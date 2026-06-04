@@ -1,6 +1,6 @@
 services:
   api1:
-    image: ghcr.io/tqrcisio/rinha-fraud-api:1
+    image: ghcr.io/tqrcisio/rinha-fraud-api:fuse
     environment:
       SOCKET_PATH: /sockets/api1.sock
     volumes:
@@ -14,7 +14,7 @@ services:
           memory: "160MB"
 
   api2:
-    image: ghcr.io/tqrcisio/rinha-fraud-api:1
+    image: ghcr.io/tqrcisio/rinha-fraud-api:fuse
     environment:
       SOCKET_PATH: /sockets/api2.sock
     volumes:
